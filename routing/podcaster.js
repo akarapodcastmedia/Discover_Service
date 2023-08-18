@@ -6,8 +6,24 @@ const {podcastModel} = require("../db/schema");
 const multer  = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-const {updateProfile, uploadProfile,ListPodcastByPodcaster,ListAllPodcaster, DeletePodcaster, DisbanPodcaster, BanPodcaster } = require("../storage.config/s3");
+const {getProfile,deleteProfile,updateProfile, uploadProfile,ListPodcastByPodcaster,ListAllPodcaster, DeletePodcaster, DisbanPodcaster, BanPodcaster } = require("../storage.config/s3");
 db();
+// get podcaster profile
+route.get("/get/profile",async (req,res)=>{
+    // get a profile of a particular podcaster
+    const result = await getProfile(req.emit);
+    return res.json(result);
+})
+// delete podcaster profile
+route.post("/delete/profile",async (req,res)=>{
+    if(req.body.podcaster_id != null){
+        const result = await deleteProfile(null,req.body.podcaster_id);
+        return res.json(result);
+    }else{
+        const result = await deleteProfile(req.email,null);
+        return res.json(result);
+    }
+})
 // upload podcaster profile 
 route.post("/upload/profile",upload.single('profile'),async(req,res)=>{
     const email = req.email;    // email of the user who upload the podcast

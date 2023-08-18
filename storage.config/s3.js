@@ -812,7 +812,6 @@ async function uploadProfile(file , email,filename,file_type){
     }
 }
 // update profile 
-// podcaster upload profile 
 async function updateProfile(file , email,filename,file_type){
   // check if the user login or already exist 
   const user = await signupModel.findOne({email : email});
@@ -898,7 +897,102 @@ async function updateProfile(file , email,filename,file_type){
   }
 }
 
+// get particular profile
+async function getProfile(email){
+    // find whether the email is existed or loged with akara system
+    const isExisting = await signupModel.findOne({email : email});
+    // check if that user found
+    if(isExisting){
+        // get the profile from the profile model by the userid 
+        const user_profile = await podcasterProfileModel.findOne({podcasterId : isExisting._id});
+        // if the user has already uploaded the profile it should return data , else null
+        if(user_profile){
+            return {
+              error : false,
+              message : "successfully get the profile",
+              profile : user_profile
+            }
+        }else{
+            return {
+              error : false,
+              message : "no profile found",
+              prfile : null
+            }
+        }
+    }else{
+        return {
+            error : true,
+            message : "please sign in first",
+            profile : null
+        }
+    }
+}
+// delete the profile 
+async function deleteProfile(email,podcaster_id){
+    // check if the podcaster id is not null 
+    if(podcaster_id){
+        // find the user 
+        const isExisting = await signupModel.findOne({_id : podcaster_id});
+        if(isExisting){
+            // find if the this user has its profile in system
+            const isProfile = await podcasterProfileModel.findOne({podcasterId : isExisting._id});
+            // check if the user is truely existed 
+            if(isProfile){
+                // delete that user
+                try{
+                  await podcasterProfileModel.deleteOne({podcasterId : isExisting._id});
+                  return {
+                      error: false,
+                      message : "profile has been deleted"
+                  }
+                }catch(e){
+                  return {
+                      error : true,
+                      message : e.message
+                  }
+                }
+                
+            }else{
+                return {
+                    error : true,
+                    message : "there is no profile to be omited"
+                }
+            }
+        }else{
+          return {
+              error : true,
+              message : "please login in , there is no this user in system"
+          }
+        }
+    }else{
+        // find the user first if it is existed
+        const isExisting = await signupModel.findOne({email : email});
+        // if the user exist 
+        if(isExisting){
+          // find and delete the profile
+          const isFound = await podcasterProfileModel.findOne({podcasterId : isExisting._id});
+          if(isFound){
+            // delete the profile 
+            const delete_status = await podcasterProfileModel.deleteOne({podcasterId : isExisting._id});
+            return {
+                error : false,
+                message : "profile has been deleted successfully"
+            }
+          }else{
+            return {
+                error : false,
+                message : "there is no profile to be omited"
+            }
+          }
+        }else{
+          return {
+              error : true,
+              message : "please login in first"
+          }
+        }
+    }
+}
 //************************************************** */
 // export global use
 //************************************************** */
-module.exports = {updateProfile,uploadProfile,UploadSrc,ListAllPodcast,ListAllCategory,ListAllPodcaster,RegenerateUrlAllPodcast,ListPodcastByCategory,ListPodcastByPodcaster,updatePodcast,DeletePodcast,DeletePodcaster,DeleteCategory,BanPodcaster,DisbanPodcaster,Banpodcast,Disbanpodcast,UpdateCategory};
+module.exports = {deleteProfile,getProfile,updateProfile,uploadProfile,UploadSrc,ListAllPodcast,ListAllCategory,ListAllPodcaster,RegenerateUrlAllPodcast,ListPodcastByCategory,ListPodcastByPodcaster,updatePodcast,DeletePodcast,DeletePodcaster,DeleteCategory,BanPodcaster,DisbanPodcaster,Banpodcast,Disbanpodcast,UpdateCategory};
